@@ -1,59 +1,16 @@
 import numpy as np
 import dimod
-
-# Especificar los coeficientes del problema que queremos resolver es muy sencillo
-# Empezaremos con un caso muy simple
-
-J = {(0,1):1}
-
-h = {}
-model = dimod.BinaryQuadraticModel(h, J, 0.0, dimod.SPIN)
-
-
-#print("El modelo que vamos a resolver es")
-#print(model)
-#print()
-
-# Podemos resolver el modelo de forma exacta
-
-
 from dimod.reference.samplers import ExactSolver
-#sampler = ExactSolver()
-#solution = sampler.sample(model)
-#print("La solucion exacta es")
-#print(solution)
-#print()
+from dwave.system.samplers import DWaveSampler
+from dwave.system.composites import EmbeddingComposite
 
-
-# O con *simulated annealing* (un método heurístico de optimización para ordenadores clásicos)
-
-
-#sampler = dimod.SimulatedAnnealingSampler()
-#response = sampler.sample(model, num_reads=10)
-#print("La solucion con simulated annealing es")
-#print(response)
-#print()
-
-
-# Y, por supuesto, con el ordenador cuántico de D-Wave 
-
-#from dwave.system.samplers import DWaveSampler
-#from dwave.system.composites import EmbeddingComposite
-#sampler = EmbeddingComposite(DWaveSampler())
-#sampler_name = sampler.properties['child_properties']['chip_id']
-#response = sampler.sample(model, num_reads=5000)
-#print("La solucion con el quantum annealer de D-Wave llamado",sampler_name,"es")
-#print(response)
-#print()
-
-#print()
-#print()
-#print()
-
-
-# Veamos ahora un caso un poco más complicado
-Q= {}
+# We create Q for the QUBO model and we also create J and h for the BinaryQuadraticModel
+# h contains the diagonal values and J the triangular matix with the rest
+Q = {}
+J = {}
+h = {}
 values=[2,4,3,1]
+values=[2,7,16,25,14,3,8,4,21,43,16,1]
 c=0
 for value in values:
   c+=value
@@ -63,8 +20,10 @@ while i < len(values):
     while j<len(values):
         if i==j:
             Q[(i,j)]=values[i]*(values[i]-c)
+            h[i]=values[i]*(values[i]-c)
         else:
             Q[(i,j)]=values[i]*values[j]
+            J[(i,j)]=values[i]*values[j]
         j+=1
     i+=1
     j=0
@@ -72,27 +31,28 @@ i=0
 j=0
 
 
-#J = {(0,1):1,(0,2):1,(1,2):1,(1,3):1,(2,4):1,(3,4):1}
-#h = {}
+#We can create the model from the qubo matrix
 model=dimod.BinaryQuadraticModel.from_qubo(Q)
-
-
-#model = dimod.BinaryQuadraticModel(h, J, 0.0, dimod.SPIN)
-print("El modelo que vamos a resolver es")
+print("The model we are going to solve in QUBO is")
 print(model)
-#print()
+print()
+#Or directly using h and J
+model = dimod.BinaryQuadraticModel(h, J, 0.0, dimod.BINARY)
+print("The model we are going to solve in BinaryQuadratic is")
+print(model)
+print()
 
 
-# Primero lo resolvemos de forma exacta
+# First we solve using the exact solver
 
-#sampler = ExactSolver()
-#solution = sampler.sample(model)
-#print("La solucion exacta es")
-#print(solution)
-#print()
+sampler = ExactSolver()
+solution = sampler.sample(model)
+print("The exact solution is ")
+print(solution)
+print()
 
 
-# Ahora, con *simulated annealing*
+# Now with *simulated annealing*
 
 sampler = dimod.SimulatedAnnealingSampler()
 response = sampler.sample(model, num_reads=10)
@@ -101,22 +61,21 @@ print(response)
 print()
 
 
-# Finalmente, lo resolvemos nuevamente con el *quantum annealer* seleccionando explícitamente el ordenador a utilizar
+# Finally we solve it again using the *quantum annealer* selecting explicitly the computer to use
 
 
-#sampler = EmbeddingComposite(DWaveSampler(solver='Advantage_system1.1'))
-#sampler_name = sampler.properties['child_properties']['chip_id']
-#response = sampler.sample(model, num_reads=5000)
-#print("La solucion con el quantum annealer de D-Wave llamado",sampler_name,"es")
-#print(response)
-#print()
+sampler = EmbeddingComposite(DWaveSampler(solver='Advantage_system1.1'))
+sampler_name = sampler.properties['child_properties']['chip_id']
+response = sampler.sample(model, num_reads=5000)
+print("The solution with D-Wave's quantum annealer called ",sampler_name,"en")
+print(response)
+print()
 
-# Lo mismo, pero con el otro *annealer*
+# The same with the other *annealer*
 
-#sampler = EmbeddingComposite(DWaveSampler(solver='DW_2000Q_6'))
-#sampler_name = sampler.properties['child_properties']['chip_id']
-#response = sampler.sample(model, num_reads=5000)
-#print("La solucion con el quantum annealer de D-Wave llamado",sampler_name,"es")
-#print(response)
-#print()
-
+sampler = EmbeddingComposite(DWaveSampler(solver='DW_2000Q_6'))
+sampler_name = sampler.properties['child_properties']['chip_id']
+response = sampler.sample(model, num_reads=5000)
+print("The solution with D-Wave's quantum annealer called ",sampler_name,"en")
+print(response)
+print()
