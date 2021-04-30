@@ -10,7 +10,7 @@ Q = {}
 J = {}
 h = {}
 values=[2,4,3,1]
-values=[2,7,16,25,14,3,8,4,21,43,16,1]
+
 c=0
 for value in values:
   c+=value
