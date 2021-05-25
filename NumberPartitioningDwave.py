@@ -18,6 +18,10 @@ i=0
 j=0
 while i < len(values):
     while j<len(values):
+        if i==j:
+            Q[(i,j)]=values[i]*(values[i]-c)
+        else:
+            Q[(i,j)]=values[i]*values[j]
         J[(i,j)]=values[i]*values[j]
         j+=1
     i+=1
@@ -26,6 +30,7 @@ i=0
 j=0
 
 model = dimod.BinaryQuadraticModel(h, J, 0.0, dimod.SPIN)
+#model = dimod.BinaryQuadraticModel.from_qubo(Q)
 print("The model we are going to solve in BinaryQuadratic is")
 print(model)
 print()
